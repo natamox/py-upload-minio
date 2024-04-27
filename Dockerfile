@@ -5,7 +5,7 @@ FROM python:3.8
 WORKDIR /app
 
 # 复制当前目录下的所有文件到工作目录中
-COPY ./temp /app/
+COPY ./tmp /app/
 COPY ./app.py /app/
 COPY ./requirements.txt /app/
 
