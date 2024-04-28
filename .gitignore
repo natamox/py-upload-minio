@@ -2,3 +2,4 @@ venv
 !.gitignore
 .DS_Store
 .Trashes
+__pycache__
