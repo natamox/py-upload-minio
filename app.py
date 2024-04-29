@@ -1,5 +1,6 @@
 import hashlib
 from flask import Flask, request, jsonify
+from gevent import pywsgi
 import minio
 import os
 
@@ -89,4 +90,5 @@ def upload_file():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    server = pywsgi.WSGIServer(("0.0.0.0", 5000), app)
+    server.serve_forever()
