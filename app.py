@@ -13,8 +13,12 @@ minio_conf = {
     "secure": os.getenv("SECURE", "False") == "True",
 }
 
-UPLOAD_FOLDER = "./tmp"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+UPLOAD_TMP_FOLDER = "./tmp"
+
+
+def create_directory_if_not_exists(directory_path):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
 
 
 def get_md5(path):
@@ -30,11 +34,8 @@ def get_minio_client():
 
 
 def get_file_url(bucket_name, object_name):
-    base_url = (
-        "http://" + minio_conf["endpoint"]
-        if not minio_conf["secure"]
-        else "https://" + minio_conf["endpoint"]
-    )
+    domain = os.getenv("DOMAIN", minio_conf["endpoint"])
+    base_url = "http://" + domain if not minio_conf["secure"] else "https://" + domain
     return f"{base_url}/{bucket_name}/{object_name}"
 
 
@@ -52,8 +53,10 @@ def upload_file():
     if file.filename == "":
         return jsonify({"error": "No selected file"})
 
+    create_directory_if_not_exists(UPLOAD_TMP_FOLDER)
+
     if file:
-        file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        file_path = os.path.abspath(os.path.join(UPLOAD_TMP_FOLDER, file.filename))
         file_type = None
         if "." in file.filename:
             file_type = "." + file.filename.split(".")[-1]
@@ -68,24 +71,23 @@ def upload_file():
             file_name = md5
 
         client = get_minio_client()
-        try:
-            client.fput_object(
-                bucket_name=bucket_name,
-                object_name=file_name,
-                file_path=file_path,
-                content_type="application/octet-stream",
-            )
 
-            file_url = get_file_url(bucket_name, file_name)
+        client.fput_object(
+            bucket_name=bucket_name,
+            object_name=file_name,
+            file_path=file_path,
+            content_type="application/octet-stream",
+        )
 
-            os.remove(file_path)
+        file_url = get_file_url(bucket_name, file_name)
 
-            if file_url:
-                return jsonify({"url": file_url})
-            else:
-                return jsonify({"error": "Failed to generate URL"})
-        except Exception as e:
-            return jsonify({"error": str(e)})
+        os.remove(file_path)
+
+        if file_url:
+            return jsonify({"url": file_url})
+        else:
+            return jsonify({"error": "Failed to generate URL"})
+
     return jsonify({"error": "File type not allowed"})
 
 
