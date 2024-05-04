@@ -38,13 +38,11 @@ function create_venv() {
   read input
 
   if [[ $(echo $input | tr '[a-z]' '[A-Z]') != Y ]]; then
-    echo "你可以自己运行 venv/bin/pip3 install -r requirements(-dev).txt 来安装依赖"
+    echo "你可以自己运行 venv/bin/pip3 install -r requirements.txt 来安装依赖"
     exit 0
   fi
 
-  echo "============ 正在安装你的应用！如果你在外网环境，请确保 VPN 已经打开！=============="
   venv/bin/pip3 install -r requirements.txt
-  # venv/bin/pip install -r requirements-dev.txt
   echo "============ 完成! 为了启用虚拟环境，请运行 source venv/bin/activate ，Windows 的话请使用 WSL/Docker 进行开发！============="
 }
 
